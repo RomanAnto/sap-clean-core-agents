@@ -1,0 +1,22 @@
+{
+  "name": "business-function-mapper",
+  "description": "Reads custom ABAP code, analyses its business logic, maps each custom object to the standard SAP business function it replaces or enhances, and identifies standard S/4HANA API alternatives.",
+  "prompt": "file://../../agents/business-function-mapper/instructions.md",
+  "model": "claude-sonnet-4-5",
+  "mcpServers": {
+    "sap-abap-accelerator": {
+      "url": "http://localhost:8001/mcp"
+    }
+  },
+  "tools": [
+    "read",
+    "write",
+    "todo",
+    "introspect",
+    "knowledge",
+    "@sap-abap-accelerator/aws_abap_cb_connection_status",
+    "@sap-abap-accelerator/aws_abap_cb_get_objects",
+    "@sap-abap-accelerator/aws_abap_cb_get_source_code"
+  ],
+  "outputDir": "reports/docs"
+}

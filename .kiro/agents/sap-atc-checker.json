@@ -1,0 +1,22 @@
+{
+  "name": "sap-atc-checker",
+  "description": "Runs SAP ABAP Test Cockpit (ATC) checks against one or more packages, classifies each finding against the SAP Clean Core API classification data, and produces a structured compliance report.",
+  "prompt": "file://../../agents/atc-checker/instructions.md",
+  "model": "claude-sonnet-4-5",
+  "mcpServers": {
+    "sap-abap-accelerator": {
+      "url": "http://localhost:8001/mcp"
+    }
+  },
+  "tools": [
+    "read",
+    "write",
+    "todo",
+    "introspect",
+    "knowledge",
+    "@sap-abap-accelerator/aws_abap_cb_connection_status",
+    "@sap-abap-accelerator/aws_abap_cb_get_objects",
+    "@sap-abap-accelerator/aws_abap_cb_run_atc_check"
+  ],
+  "outputDir": "reports/atc"
+}

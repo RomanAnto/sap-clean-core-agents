@@ -1,0 +1,21 @@
+{
+  "name": "sap-custom-code-documenter",
+  "description": "Reads ABAP class, function module, and program source code from SAP, generates structured Markdown documentation (purpose, inputs, outputs, dependencies), and writes it to reports/docs/.",
+  "prompt": "file://../../agents/documenter/instructions.md",
+  "model": "claude-sonnet-4-5",
+  "mcpServers": {
+    "sap-abap-accelerator": {
+      "url": "http://localhost:8001/mcp"
+    }
+  },
+  "tools": [
+    "read",
+    "write",
+    "todo",
+    "knowledge",
+    "@sap-abap-accelerator/aws_abap_cb_connection_status",
+    "@sap-abap-accelerator/aws_abap_cb_get_objects",
+    "@sap-abap-accelerator/aws_abap_cb_get_source_code"
+  ],
+  "outputDir": "reports/docs"
+}

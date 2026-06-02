@@ -1,0 +1,24 @@
+# =============================================================================
+# requirements.txt — Pinned production dependencies (Fix F-02)
+# All versions pinned with == to ensure reproducible builds.
+# Update via: pip-compile or dependabot (see .github/dependabot.yml).
+# =============================================================================
+
+# MCP server framework
+fastmcp==0.4.1
+
+# Settings management
+pydantic==2.9.2
+pydantic-settings==2.6.1
+
+# Async HTTP client for SAP ADT REST API
+httpx==0.28.0
+
+# ASGI server
+uvicorn==0.32.1
+
+# Cryptography (for HTTPS/TLS utilities)
+cryptography==43.0.3
+
+# JSON schema validation
+jsonschema==4.23.0

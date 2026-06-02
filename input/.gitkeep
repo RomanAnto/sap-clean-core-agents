@@ -1,0 +1,7 @@
+# SAP API classification data (CSV and XML) goes here.
+# Download from: https://github.com/SAP/abap-atc-cr-cv-s4hc
+#
+# After downloading, generate a checksum file for integrity verification:
+#   cd input && sha256sum *.csv *.xml > SHA256SUMS
+#
+# The SHA256SUMS file IS tracked by git; the CSV/XML data files are git-ignored.

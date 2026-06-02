@@ -1,0 +1,74 @@
+# =============================================================================
+# ci.yml — Continuous Integration (Fix F-01)
+#
+# Pipeline stages:
+#   1. bandit   — static security analysis (OWASP)
+#   2. safety   — dependency vulnerability scan
+#   3. black    — code format check
+#   4. mypy     — type checking
+#   5. pytest   — unit tests with coverage
+# =============================================================================
+name: CI
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  lint-and-test:
+    name: Lint, Security Scan, and Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      # ---- Security --------------------------------------------------------
+      - name: Run bandit (security static analysis)
+        run: |
+          bandit -r src/ -ll --format json -o bandit-report.json || true
+          bandit -r src/ -ll
+        continue-on-error: false
+
+      - name: Run safety (dependency vulnerability scan)
+        run: safety check -r requirements.txt --full-report
+        continue-on-error: false
+
+      # ---- Code quality ----------------------------------------------------
+      - name: Run black (format check)
+        run: black --check src/ tests/
+
+      - name: Run mypy (type check)
+        run: mypy src/ --ignore-missing-imports
+
+      # ---- Tests -----------------------------------------------------------
+      - name: Run pytest with coverage
+        run: |
+          pytest tests/ \
+            --cov=src/aws_abap_accelerator \
+            --cov-report=term-missing \
+            --cov-fail-under=60 \
+            -v
+
+      - name: Upload bandit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-report
+          path: bandit-report.json

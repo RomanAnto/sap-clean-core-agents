@@ -1,0 +1,45 @@
+# =============================================================================
+# SAP Clean Core — .gitignore
+# =============================================================================
+
+# --- SAP credentials (NEVER commit these) ---
+mcp/sap.env
+secrets/sap_password
+secrets/
+
+# --- Agent-generated reports (may contain SAP source code) ---
+reports/
+
+# --- MCP server cloned alongside ---
+aws-abap-accelerator-http/
+
+# --- Python ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+.mypy_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+*.so
+
+# --- Editor / IDE ---
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# --- SAP API classification data (re-download from SAP/abap-atc-cr-cv-s4hc) ---
+# Keep SHA256SUMS, exclude actual data files if they are large
+input/*.csv
+input/*.xml
+# But keep the checksum file
+!input/SHA256SUMS

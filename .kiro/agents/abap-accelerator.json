@@ -1,0 +1,28 @@
+{
+  "name": "abap-accelerator",
+  "description": "General-purpose ABAP development assistant with full tool access. Can read, analyse, and produce ABAP code, trigger SAP transports, and co-ordinate across agents. Use sparingly — this agent has the highest tool access level.",
+  "prompt": "file://../../agents/abap-accelerator/instructions.md",
+  "model": "claude-opus-4-5",
+  "mcpServers": {
+    "sap-abap-accelerator": {
+      "url": "http://localhost:8001/mcp"
+    }
+  },
+  "tools": [
+    "read",
+    "write",
+    "shell",
+    "todo",
+    "introspect",
+    "knowledge",
+    "@sap-abap-accelerator/aws_abap_cb_connection_status",
+    "@sap-abap-accelerator/aws_abap_cb_get_objects",
+    "@sap-abap-accelerator/aws_abap_cb_get_source_code",
+    "@sap-abap-accelerator/aws_abap_cb_run_atc_check",
+    "@sap-abap-accelerator/aws_abap_cb_get_where_used",
+    "@sap-abap-accelerator/aws_abap_cb_activate_objects",
+    "@sap-abap-accelerator/aws_abap_cb_create_transport",
+    "@sap-abap-accelerator/aws_abap_cb_search_objects"
+  ],
+  "outputDir": "reports"
+}

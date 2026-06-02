@@ -1,0 +1,21 @@
+{
+  "name": "sap-unused-code-discovery",
+  "description": "Identifies ABAP programs, function groups, and classes with no runtime usage in the configured period (default 6 months) using ATC usage statistics and SAP Where-Used lists. Outputs a prioritised decommission candidate list.",
+  "prompt": "file://../../agents/unused-code/instructions.md",
+  "model": "claude-haiku-3-5",
+  "mcpServers": {
+    "sap-abap-accelerator": {
+      "url": "http://localhost:8001/mcp"
+    }
+  },
+  "tools": [
+    "read",
+    "write",
+    "todo",
+    "@sap-abap-accelerator/aws_abap_cb_connection_status",
+    "@sap-abap-accelerator/aws_abap_cb_get_objects",
+    "@sap-abap-accelerator/aws_abap_cb_run_atc_check",
+    "@sap-abap-accelerator/aws_abap_cb_get_where_used"
+  ],
+  "outputDir": "reports/unused"
+}
