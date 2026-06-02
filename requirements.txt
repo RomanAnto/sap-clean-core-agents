@@ -12,7 +12,7 @@ pydantic==2.9.2
 pydantic-settings==2.6.1
 
 # Async HTTP client for SAP ADT REST API
-httpx==0.28.0
+httpx==0.28.1
 
 # ASGI server
 uvicorn==0.32.1
