@@ -13,7 +13,7 @@ black==24.10.0
 mypy==1.13.0
 
 # Security scanning
-bandit==1.8.0
+bandit==1.9.4
 safety==3.2.9
 
 # Type stubs
