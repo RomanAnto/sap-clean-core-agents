@@ -9,7 +9,7 @@ fastmcp==0.4.1
 
 # Settings management
 pydantic==2.9.2
-pydantic-settings==2.6.1
+pydantic-settings==2.14.1
 
 # Async HTTP client for SAP ADT REST API
 httpx==0.28.0
