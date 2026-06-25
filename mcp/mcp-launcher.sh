@@ -75,6 +75,18 @@ validate_env_file "$ENV_FILE"
 # shellcheck source=/dev/null
 source "$ENV_FILE"
 
+# Load Portkey configuration if present (optional — enables model-agnostic LLM routing)
+PORTKEY_ENV_FILE="$CC_DIR/mcp/portkey.env"
+if [ -f "$PORTKEY_ENV_FILE" ]; then
+    validate_env_file "$PORTKEY_ENV_FILE"
+    # shellcheck source=/dev/null
+    source "$PORTKEY_ENV_FILE"
+    log_info "Portkey configuration loaded from mcp/portkey.env"
+else
+    log_info "No mcp/portkey.env found — running without Portkey gateway (direct model calls)"
+    log_info "  To enable: cp mcp/portkey.env.example mcp/portkey.env && edit as needed"
+fi
+
 # Validate required variables
 : "${SAP_HOST:?SAP_HOST is not set in mcp/sap.env}"
 : "${SAP_CLIENT:?SAP_CLIENT is not set in mcp/sap.env}"

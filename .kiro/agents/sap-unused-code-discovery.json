@@ -2,7 +2,15 @@
   "name": "sap-unused-code-discovery",
   "description": "Identifies ABAP programs, function groups, and classes with no runtime usage in the configured period (default 6 months) using ATC usage statistics and SAP Where-Used lists. Outputs a prioritised decommission candidate list.",
   "prompt": "file://../../agents/unused-code/instructions.md",
-  "model": "claude-haiku-3-5",
+  "model": "${AGENT_MODEL_FAST:-claude-haiku-3-5}",
+  "provider": {
+    "type": "openai-compatible",
+    "baseUrl": "${PORTKEY_BASE_URL:-https://api.portkey.ai/v1}",
+    "apiKey": "${PORTKEY_API_KEY}",
+    "extraHeaders": {
+      "x-portkey-virtual-key": "${PORTKEY_VIRTUAL_KEY_FAST}"
+    }
+  },
   "mcpServers": {
     "sap-abap-accelerator": {
       "url": "http://localhost:8001/mcp"

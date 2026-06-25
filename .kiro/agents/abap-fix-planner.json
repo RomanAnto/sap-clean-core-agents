@@ -2,7 +2,15 @@
   "name": "abap-fix-planner",
   "description": "Consumes ATC check results from reports/atc/ and produces a detailed, prioritised ABAP/S4 Fix Implementation Plan. Specifies violation categories, clean-core migration patterns, step-by-step instructions, effort estimates, and transport strategy for each finding.",
   "prompt": "file://../../agents/abap-fix-planner/instructions.md",
-  "model": "claude-opus-4-5",
+  "model": "${AGENT_MODEL_HIGH:-claude-opus-4-5}",
+  "provider": {
+    "type": "openai-compatible",
+    "baseUrl": "${PORTKEY_BASE_URL:-https://api.portkey.ai/v1}",
+    "apiKey": "${PORTKEY_API_KEY}",
+    "extraHeaders": {
+      "x-portkey-virtual-key": "${PORTKEY_VIRTUAL_KEY_HIGH}"
+    }
+  },
   "mcpServers": {
     "sap-abap-accelerator": {
       "url": "http://localhost:8001/mcp"

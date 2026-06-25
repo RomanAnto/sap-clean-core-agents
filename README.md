@@ -3,7 +3,8 @@
 A **production-ready** agent-driven toolkit for SAP Clean Core compliance analysis, ABAP/S4 code quality review, and automated fix implementation planning. Built on Kiro CLI agents, GitHub Copilot Skills, and a Python FastMCP server that bridges the agents to SAP via ADT REST APIs.
 
 **Key Features:**
-- ✅ **6 specialized agents** running on claude-opus, claude-sonnet, claude-haiku models
+- ✅ **6 specialized agents** — model-agnostic via Portkey AI gateway
+- ✅ **Portkey integration** for provider-independent LLM routing (Anthropic, OpenAI, Azure, Bedrock, …)
 - ✅ **4 Copilot skills** for IDE integration in VS Code
 - ✅ **Python FastMCP server** with 8 SAP ADT tools (async httpx client)
 - ✅ **All 7 security fixes** from Clean Core analysis applied (S-01 through S-07)
@@ -86,19 +87,22 @@ sap-clean-core-agents/
 
 ## Agents
 
-| Agent | Model | Purpose |
-|-------|-------|---------|
-| `sap-atc-checker` | `claude-sonnet-4-5` | Run SAP ATC checks; classify Clean Core violations |
-| `sap-custom-code-documenter` | `claude-sonnet-4-5` | Document ABAP custom code objects |
-| `sap-unused-code-discovery` | `claude-haiku-3-5` | Identify unused ABAP programs and classes |
-| `business-function-mapper` | `claude-sonnet-4-5` | Map custom code to standard SAP business functions |
-| `abap-accelerator` | `claude-opus-4-5` | General-purpose SAP operations (full tool access) |
-| `abap-fix-planner` | `claude-opus-4-5` | **NEW**: Create fix implementation plans from ATC findings |
+| Agent | Model Tier | Purpose |
+|-------|------------|---------|
+| `sap-atc-checker` | `STANDARD` | Run SAP ATC checks; classify Clean Core violations |
+| `sap-custom-code-documenter` | `STANDARD` | Document ABAP custom code objects |
+| `sap-unused-code-discovery` | `FAST` | Identify unused ABAP programs and classes |
+| `business-function-mapper` | `STANDARD` | Map custom code to standard SAP business functions |
+| `abap-accelerator` | `HIGH` | General-purpose SAP operations (full tool access) |
+| `abap-fix-planner` | `HIGH` | **NEW**: Create fix implementation plans from ATC findings |
+
+Model tiers resolve at runtime via Portkey env vars (`AGENT_MODEL_HIGH`, `AGENT_MODEL_STANDARD`,
+`AGENT_MODEL_FAST`). Defaults: `claude-opus-4-5` / `claude-sonnet-4-5` / `claude-haiku-3-5`.
 
 ### Model Selection Rationale
-- **`claude-opus-4-5`** — Complex reasoning, multi-step planning, ambiguous SAP business logic
-- **`claude-sonnet-4-5`** — Analysis, documentation, classification (best speed/quality balance)
-- **`claude-haiku-3-5`** — High-volume pattern matching, simple structural queries
+- **`HIGH`** — Complex reasoning, multi-step planning, ambiguous SAP business logic
+- **`STANDARD`** — Analysis, documentation, classification (best speed/quality balance)
+- **`FAST`** — High-volume pattern matching, simple structural queries
 
 ---
 
@@ -137,7 +141,23 @@ echo -n "your_sap_password" > secrets/sap_password
 chmod 600 secrets/sap_password
 ```
 
-### 3. Download SAP API classification data (optional but recommended)
+### 3. Configure Portkey (model-agnostic LLM gateway)
+```bash
+# Copy the Portkey template
+cp mcp/portkey.env.example mcp/portkey.env
+
+# Edit mcp/portkey.env:
+#   1. Set PORTKEY_API_KEY  (get from https://app.portkey.ai/api-keys)
+#   2. Create virtual keys for your preferred LLM provider in the Portkey
+#      dashboard (https://app.portkey.ai/virtual-keys) and paste the slugs
+#      into PORTKEY_VIRTUAL_KEY_HIGH / _STANDARD / _FAST
+#   3. Optionally override AGENT_MODEL_* to switch from Claude to GPT-4o etc.
+nano mcp/portkey.env
+
+# Skip this step if you want to use Kiro's built-in Claude defaults directly.
+```
+
+### 4. Download SAP API classification data (optional but recommended)
 ```bash
 # The input/ directory holds SAP API Clean Core classification CSVs
 # Download from the official repo:
@@ -149,19 +169,20 @@ cp /tmp/sap-atc-data/src/data/*.xml input/ 2>/dev/null || true
 cd input && sha256sum *.csv *.xml > SHA256SUMS 2>/dev/null || true; cd ..
 ```
 
-### 4. Validate environment
+### 5. Validate environment
 ```bash
 bash check-setup.sh
 # Output: "Status: ALL CHECKS PASSED — ready to run agents"
 ```
 
-### 5. Start the MCP server
+### 6. Start the MCP server
 ```bash
 bash mcp/mcp-launcher.sh
 # Output: [INFO] Starting MCP server on 127.0.0.1:8001
+# Output: [INFO] Portkey configuration loaded from mcp/portkey.env   ← if portkey.env exists
 ```
 
-### 6. Run an agent
+### 7. Run an agent
 In a new terminal:
 ```bash
 # Run ATC checker on a specific package

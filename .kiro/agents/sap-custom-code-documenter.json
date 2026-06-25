@@ -2,7 +2,15 @@
   "name": "sap-custom-code-documenter",
   "description": "Reads ABAP class, function module, and program source code from SAP, generates structured Markdown documentation (purpose, inputs, outputs, dependencies), and writes it to reports/docs/.",
   "prompt": "file://../../agents/documenter/instructions.md",
-  "model": "claude-sonnet-4-5",
+  "model": "${AGENT_MODEL_STANDARD:-claude-sonnet-4-5}",
+  "provider": {
+    "type": "openai-compatible",
+    "baseUrl": "${PORTKEY_BASE_URL:-https://api.portkey.ai/v1}",
+    "apiKey": "${PORTKEY_API_KEY}",
+    "extraHeaders": {
+      "x-portkey-virtual-key": "${PORTKEY_VIRTUAL_KEY_STANDARD}"
+    }
+  },
   "mcpServers": {
     "sap-abap-accelerator": {
       "url": "http://localhost:8001/mcp"

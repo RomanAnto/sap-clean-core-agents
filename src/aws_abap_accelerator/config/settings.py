@@ -7,6 +7,11 @@ Security fixes applied (from repo analysis):
   S-04: SAP_PASSWORD via env var emits warning; missing password raises clearly
   B-03: CORS default code matches documented default (False)
   B-04: Empty password raises ValueError with actionable message
+
+Portkey integration:
+  PortkeySettings reads PORTKEY_* env vars to configure the AI gateway.
+  When PORTKEY_API_KEY is set, the MCP server uses Portkey for all LLM calls,
+  enabling model-agnostic routing via virtual keys (Anthropic, OpenAI, etc.).
 """
 from __future__ import annotations
 
@@ -131,6 +136,97 @@ class CORSSettings(BaseSettings):
 
 
 # ---------------------------------------------------------------------------
+# Portkey AI Gateway Settings
+# ---------------------------------------------------------------------------
+
+class PortkeySettings(BaseSettings):
+    """Portkey AI gateway configuration for model-agnostic LLM routing.
+
+    When PORTKEY_API_KEY is set, the MCP server uses Portkey as the LLM
+    gateway. Virtual keys (set in the Portkey dashboard) abstract the actual
+    provider so agents can switch between Anthropic, OpenAI, Azure, etc.
+    without code changes.
+
+    See mcp/portkey.env.example for setup instructions.
+    """
+
+    api_key: Optional[str] = Field(
+        None,
+        description="Portkey API key (from https://app.portkey.ai/api-keys)",
+    )
+    base_url: str = Field(
+        "https://api.portkey.ai/v1",
+        description="Portkey gateway base URL (override for self-hosted deployments)",
+    )
+    virtual_key_high: Optional[str] = Field(
+        None,
+        description="Virtual key for high-capability tier (Opus-class models)",
+    )
+    virtual_key_standard: Optional[str] = Field(
+        None,
+        description="Virtual key for standard tier (Sonnet-class models)",
+    )
+    virtual_key_fast: Optional[str] = Field(
+        None,
+        description="Virtual key for fast/high-volume tier (Haiku-class models)",
+    )
+    # Model tier overrides (mirror AGENT_MODEL_* used by Kiro agent JSON env vars)
+    model_high: str = Field(
+        "claude-opus-4-5",
+        description="Model name for HIGH tier agents (AGENT_MODEL_HIGH)",
+    )
+    model_standard: str = Field(
+        "claude-sonnet-4-5",
+        description="Model name for STANDARD tier agents (AGENT_MODEL_STANDARD)",
+    )
+    model_fast: str = Field(
+        "claude-haiku-3-5",
+        description="Model name for FAST tier agents (AGENT_MODEL_FAST)",
+    )
+
+    model_config = SettingsConfigDict(env_prefix="PORTKEY_", case_sensitive=False)
+
+    @property
+    def enabled(self) -> bool:
+        """Return True when a Portkey API key is configured."""
+        return bool(self.api_key)
+
+    def get_headers(self, tier: str = "standard") -> dict:
+        """Return HTTP headers required for Portkey-routed requests.
+
+        Args:
+            tier: One of "high", "standard", or "fast".
+
+        Returns:
+            Dict of headers to include in every LLM API call.
+        """
+        if not self.enabled:
+            return {}
+
+        headers: dict = {"x-portkey-api-key": self.api_key}
+
+        virtual_key_map = {
+            "high": self.virtual_key_high,
+            "standard": self.virtual_key_standard,
+            "fast": self.virtual_key_fast,
+        }
+        virtual_key = virtual_key_map.get(tier)
+        if virtual_key:
+            headers["x-portkey-virtual-key"] = virtual_key
+
+        return headers
+
+    def get_model(self, tier: str = "standard") -> str:
+        """Return the configured model name for the given tier."""
+        model_map = {
+            "high": self.model_high,
+            "standard": self.model_standard,
+            "fast": self.model_fast,
+        }
+        return model_map.get(tier, self.model_standard)
+
+
+# ---------------------------------------------------------------------------
 # Credential / Secret Loading
 # ---------------------------------------------------------------------------
 
@@ -195,6 +291,7 @@ def load_config() -> dict:
     sap = SAPSettings()  # type: ignore[call-arg]  # reads from env
     server = ServerSettings()
     cors = CORSSettings()
+    portkey = PortkeySettings()
 
     # --- SAP password ---
     password = SecretReader.get_secret_or_env("sap_password", "SAP_PASSWORD")
@@ -210,6 +307,7 @@ def load_config() -> dict:
         "server": server,
         "cors": cors,
         "sap_password": password,
+        "portkey": portkey,
     }
 
 

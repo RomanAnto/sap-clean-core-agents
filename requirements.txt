@@ -22,3 +22,6 @@ cryptography==43.0.3
 
 # JSON schema validation
 jsonschema==4.23.0
+
+# Portkey AI Gateway — model-agnostic LLM routing
+portkey-ai==1.9.2

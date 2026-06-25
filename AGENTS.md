@@ -1,7 +1,11 @@
 # AGENTS.md — SAP Clean Core Agent Registry
 
-This file describes all Kiro agents in this repository, their purposes, tool scopes,
-and the Claude models they use.
+This file describes all agents in this repository, their purposes, tool scopes,
+and model tiers. Models are resolved at runtime via **Portkey** (AI gateway),
+making every agent model-agnostic — swap providers by changing env vars, no
+code edits required.
+
+See [mcp/portkey.env.example](mcp/portkey.env.example) for gateway setup.
 
 ---
 
@@ -13,7 +17,7 @@ and the Claude models they use.
 |----------|-------|
 | **Config** | `.kiro/agents/sap-atc-checker.json` |
 | **Instructions** | `agents/atc-checker/instructions.md` |
-| **Model** | `claude-sonnet-4-5` |
+| **Model tier** | `STANDARD` → `${AGENT_MODEL_STANDARD:-claude-sonnet-4-5}` |
 | **Access Level** | Read + Write reports |
 
 **Purpose**: Connects to the SAP system via MCP, runs ABAP Test Cockpit (ATC) checks against
@@ -34,7 +38,7 @@ data in `input/`, and writes a structured JSON + Markdown report to `reports/atc
 |----------|-------|
 | **Config** | `.kiro/agents/sap-custom-code-documenter.json` |
 | **Instructions** | `agents/documenter/instructions.md` |
-| **Model** | `claude-sonnet-4-5` |
+| **Model tier** | `STANDARD` → `${AGENT_MODEL_STANDARD:-claude-sonnet-4-5}` |
 | **Access Level** | Read-only SAP access |
 
 **Purpose**: Reads ABAP class, function module, and program source code from SAP via ADT,
@@ -55,7 +59,7 @@ Markdown documentation to `reports/docs/`.
 |----------|-------|
 | **Config** | `.kiro/agents/sap-unused-code-discovery.json` |
 | **Instructions** | `agents/unused-code/instructions.md` |
-| **Model** | `claude-haiku-3-5` |
+| **Model tier** | `FAST` → `${AGENT_MODEL_FAST:-claude-haiku-3-5}` |
 | **Access Level** | Read-only SAP access |
 
 **Purpose**: Identifies ABAP programs, function groups, and classes that have had no runtime
@@ -77,7 +81,7 @@ SAP Where-Used lists. Outputs a prioritised list to `reports/unused/`.
 |----------|-------|
 | **Config** | `.kiro/agents/business-function-mapper.json` |
 | **Instructions** | `agents/business-function-mapper/instructions.md` |
-| **Model** | `claude-sonnet-4-5` |
+| **Model tier** | `STANDARD` → `${AGENT_MODEL_STANDARD:-claude-sonnet-4-5}` |
 | **Access Level** | Read-only SAP access + knowledge base |
 
 **Purpose**: Reads custom ABAP code, analyses its business logic, and maps each custom
@@ -98,7 +102,7 @@ table with standard S/4HANA API alternatives where applicable.
 |----------|-------|
 | **Config** | `.kiro/agents/abap-accelerator.json` |
 | **Instructions** | `agents/abap-accelerator/instructions.md` |
-| **Model** | `claude-opus-4-5` |
+| **Model tier** | `HIGH` → `${AGENT_MODEL_HIGH:-claude-opus-4-5}` |
 | **Access Level** | Full (read + write + shell + all SAP tools) |
 
 **Purpose**: General-purpose ABAP development assistant. Can read, analyse, and produce
@@ -117,7 +121,7 @@ this agent has the highest tool access level.
 |----------|-------|
 | **Config** | `.kiro/agents/abap-fix-planner.json` |
 | **Instructions** | `agents/abap-fix-planner/instructions.md` |
-| **Model** | `claude-opus-4-5` |
+| **Model tier** | `HIGH` → `${AGENT_MODEL_HIGH:-claude-opus-4-5}` |
 | **Access Level** | Read reports + Read SAP (no write to SAP) |
 
 **Purpose**: Consumes ATC check results (from `reports/atc/`) and the Clean Core API
@@ -140,17 +144,36 @@ The plan is written to `reports/fix-plans/` in both Markdown and JSON formats.
 
 ---
 
-## Supported Models
+## Model Tiers & Portkey Gateway
 
-All agents require a model with **tool-use (function calling)** capability.
+Agents are **model-agnostic**: each agent is assigned a capability *tier*, not a
+specific model. The actual model is resolved at runtime via environment variables
+routed through the [Portkey AI gateway](https://portkey.ai).
 
-| Model | Best For |
-|-------|----------|
-| `claude-opus-4-5` | Complex multi-step reasoning, implementation planning, ambiguous business logic |
-| `claude-sonnet-4-5` | Analysis, documentation generation, code classification — best speed/quality trade-off |
-| `claude-haiku-3-5` | High-volume scanning, simple structural queries, pattern matching |
+### Capability Tiers
 
-> Do **not** use models that do not support tool-use. The MCP tool calls will fail silently.
+| Tier | Env var | Default | Suitable replacements |
+|------|---------|---------|----------------------|
+| `HIGH` | `AGENT_MODEL_HIGH` | `claude-opus-4-5` | `gpt-4o`, `gemini-1.5-pro` |
+| `STANDARD` | `AGENT_MODEL_STANDARD` | `claude-sonnet-4-5` | `gpt-4o-mini`, `claude-3-5-sonnet` |
+| `FAST` | `AGENT_MODEL_FAST` | `claude-haiku-3-5` | `gpt-4o-mini`, `gemini-flash` |
+
+All models must support **tool-use / function calling** — the MCP tool calls will
+fail silently with models that do not.
+
+### Switching Providers with Portkey
+
+1. Create virtual keys in the [Portkey dashboard](https://app.portkey.ai/virtual-keys)
+   pointing to your preferred provider (Anthropic, OpenAI, Azure, AWS Bedrock, etc.).
+2. Copy and fill `mcp/portkey.env.example` → `mcp/portkey.env`:
+   ```bash
+   cp mcp/portkey.env.example mcp/portkey.env
+   # Set PORTKEY_API_KEY, PORTKEY_VIRTUAL_KEY_*, and AGENT_MODEL_* as needed
+   ```
+3. Start the MCP server — the launcher picks up `portkey.env` automatically.
+
+If no `portkey.env` exists the agents fall back to their hardcoded defaults
+(`claude-opus-4-5` / `claude-sonnet-4-5` / `claude-haiku-3-5`).
 
 ---
 

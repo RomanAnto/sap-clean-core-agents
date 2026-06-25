@@ -4,6 +4,7 @@
 
 # --- SAP credentials (NEVER commit these) ---
 mcp/sap.env
+mcp/portkey.env
 secrets/sap_password
 secrets/
 
